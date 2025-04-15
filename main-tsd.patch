@@ -1,0 +1,48 @@
+From c6fdfa79e23e6d52df2c2d28e4eb13e91b16ad4c Mon Sep 17 00:00:00 2001
+From: Samuel Hym <samuel@tarides.com>
+Date: Tue, 15 Oct 2024 14:34:27 +0200
+Subject: [PATCH] uk_init_tls: Initialize the TSD to the value expected by musl
+
+Even if the TSD has been initialized already, the first call to
+`pthread_create` will (re)set it to point to the statically-allocated
+`__pthread_tsd_main` (see (1)). So, before this patch, the memory
+allocated for the TSD leaked and, worse, the following sequence:
+
+```
+pthread_key_create(&key, NULL);
+pthread_setspecific(key, value);
+assert(pthread_getspecific(key) == value);
+pthread_create(&th, NULL, &thrd, NULL);
+assert(pthread_getspecific(key) == value);
+```
+
+ended up with the final assertion failing.
+
+(1) src/thread/pthread_create.c line 255 in musl v1.2.3
+
+Signed-off-by: Samuel Hym <samuel@tarides.com>
+---
+ __uk_init_tls.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/__uk_init_tls.c b/__uk_init_tls.c
+index 21a94f8..1295f47 100644
+--- a/__uk_init_tls.c
++++ b/__uk_init_tls.c
+@@ -116,12 +116,10 @@ static int __uk_init_tp(void *p)
+ 	 */
+ 	memset(td, 0, sizeof(*td));
+ 
+-	td->tsd = (void *)uk_memalign(uk_alloc_get_default(), __PAGE_SIZE,
+-							__uk_tsd_size);
+-	if (!td->tsd)
+-		UK_CRASH("Failed to initialize init thread tsd\n");
+-
+-	memset(td->tsd, 0, __uk_tsd_size);
++	/* The first call to pthread_create will set unconditionally the tsd
++	 * field to point to __pthread_tsd_main so we initialize it already to
++	 * that value */
++	td->tsd = __pthread_tsd_main;
+ 
+ 	/*
+ 	 * The initial thread in the new image shall be joinable, as if

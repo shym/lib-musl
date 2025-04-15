@@ -1,0 +1,23 @@
+From ecae7ade7bcf7e0fb7e869225f6db1043d3653bf Mon Sep 17 00:00:00 2001
+From: Samuel Hym <samuel@tarides.com>
+Date: Mon, 27 Jan 2025 17:30:41 +0100
+Subject: [PATCH] Makefile.uk.musl.signal: Fix arm64 architecture test
+
+Signed-off-by: Samuel Hym <samuel@tarides.com>
+---
+ Makefile.uk.musl.signal | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile.uk.musl.signal b/Makefile.uk.musl.signal
+index e36e0b9..8f9b628 100644
+--- a/Makefile.uk.musl.signal
++++ b/Makefile.uk.musl.signal
+@@ -68,7 +68,7 @@ LIBMUSL_SIGNAL_SRCS-y += $(LIBMUSL)/src/signal/x86_64/sigsetjmp.s|x86_64
+ else ifeq (arm,$(CONFIG_UK_ARCH))
+ LIBMUSL_SIGNAL_SRCS-y += $(LIBMUSL)/src/signal/arm/restore.s|arm
+ LIBMUSL_SIGNAL_SRCS-y += $(LIBMUSL)/src/signal/arm/sigsetjmp.s|arm
+-else ifeq (aarch64,$(CONFIG_UK_ARCH))
++else ifeq (arm64,$(CONFIG_UK_ARCH))
+ LIBMUSL_SIGNAL_SRCS-y += $(LIBMUSL)/src/signal/aarch64/restore.s|aarch64
+ LIBMUSL_SIGNAL_SRCS-y += $(LIBMUSL)/src/signal/aarch64/sigsetjmp.s|aarch64
+ else
